@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthScope Ghana</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            background-image: url('https://dubaimonsters.com/wp-content/uploads/2018/04/High-Resolution-Background-Images.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        h1, h2, h3 {
+            color: white;
+        }
+
+        /* Header Styling */
+        header {
+            padding: 20px 0;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0;
+            text-align: right;
+        }
+
+        nav ul li {
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Hero Section */
+        #hero {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+
+        #hero .btn {
+            background-color: #ff7f50;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            border: none;
+        }
+
+        #hero .btn:hover {
+            background-color: #ff5e33;
+            box-shadow: 0 0 10px rgba(255, 94, 51, 0.5);
+        }
+
+        #education-cta {
+            background-color: transparent;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #education-cta h4 {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        #education-cta p {
+            font-size: 18px;
+            color: white;
+        }
+        
+        #education-cta .btn {
+            background-color: #ff7f50;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            border: none;
+        }
+
+        #education-cta .btn:hover {
+            background-color: #ff5e33;
+            box-shadow: 0 0 10px rgba(255, 94, 51, 0.5);
+        }
+
+
+        /* Health Milestones Section */
+        #ghana-health-history {
+            padding: 40px 0;
+            margin-top: 30px;
+        }
+
+        .history-stories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .story {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .story:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .story h3 {
+            color: #007b8c;
+        }
+
+        .story i {
+            color: #ff7f50;
+            margin-right: 8px;
+        }
+
+        .key-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .key-stats .stat {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .key-stats .stat:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .key-stats .stat h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #007b8c;
+        }
+
+        .key-stats .stat i {
+            color: #ff7f50;
+            margin-right: 8px;
+        }
+
+        /* Footer Styling */
+        footer {
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1>HealthScope Ghana</h1>
+            <nav>
+                <ul class="d-flex">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="visualization.html">Visualizations</a></li>
+                    <li><a href="Educational.html">Education</a></li>
+                    <li><a href="login.html">Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Homepage Content -->
+    <main>
+        <section id="hero">
+            <h2>Welcome to Ghana's Premier Health Analytics Platform.</h2>
+            <p>At HealthScope Ghana, we transform health data into actionable insights, empowering informed decisions for policymakers, professionals, and citizens. Explore trends, uncover patterns, and shape a healthier, resilient Ghana together.</p>
+            <a href="visualization.html" class="btn"><i class="fas fa-chart-line"></i> Explore Data</a>
+        </section>
+
+
+    <!-- Call-to-Action for Education Page -->
+         <section id="education-cta" class="text-center mt-5">
+            <h4>Empower Your Health Journey Today</h4>
+            <p>Access a wealth of health education resources designed to enhance your understanding of disease prevention, promote healthy living, and prepare you for emergency health situations.</p>
+            <a href="Educational.html" class="btn btn-primary">Start here</a>
+        </section>
+
+        <section id="ghana-health-history">
+            <div class="container">
+                <h2>Health Milestones</h2>
+                <p style="color: white;">Discover Ghana's journey in overcoming health challenges.</p>
+        
+                <div class="history-stories">
+                    <div class="story">
+                        <h3><i class="fas fa-bug"></i> The Fight Against Malaria</h3>
+                        <p>Efforts to reduce malaria include insecticide-treated nets and vaccines.</p>
+                    </div>
+                    <div class="story">
+                        <h3><i class="fas fa-virus"></i> Yellow Fever Vaccine Discovery</h3>
+                        <p>Ghana was among the first countries to adopt the Yellow Fever vaccine.</p>
+                    </div>
+                    <div class="story">
+                        <h3><i class="fas fa-hospital"></i> Expanding Health Infrastructure</h3>
+                        <p>Investments in rural health centers ensure equitable access.</p>
+                    </div>
+                    <div class="story">
+                        <h3><i class="fas fa-map-marked-alt"></i> Geographical Challenges</h3>
+                        <p>Adapting healthcare delivery to diverse regions is key to success.</p>
+                    </div>
+                </div>
+        
+                <div class="key-stats">
+                    <div class="stat">
+                        <h3><i class="fas fa-users"></i> Population</h3>
+                        <p>33.78 million</p>
+                    </div>
+                    <div class="stat">
+                        <h3><i class="fas fa-heartbeat"></i> Life Expectancy</h3>
+                        <p>57.9 years</p>
+                    </div>
+                    <div class="stat">
+                        <h3><i class="fas fa-baby"></i> Infant Mortality Rate</h3>
+                        <p>39.7 deaths per 1,000 live births</p>
+                    </div>
+                    <div class="stat">
+                        <h3><i class="fas fa-child"></i> Under-5 Mortality Rate</h3>
+                        <p>60.3 deaths per 1,000 live births</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 HealthScope Ghana. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap and Font Awesome JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
