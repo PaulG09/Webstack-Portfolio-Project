@@ -43,7 +43,7 @@ class HealthData(db.Model):
 
 # Load and insert data from Excel
 def load_and_insert_data():
-    excel_file = '~/Webstack-Portfolio-Project/backend/cleaned_health_data.xlsx'
+    excel_file = 'cleaned_health_data.xlsx'
     df = pd.read_excel(excel_file)
     try:
         for _, row in df.iterrows():
