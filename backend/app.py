@@ -142,36 +142,49 @@ def disease_distribution():
 # Endpoint: Disease Prediction (Forecasting)
 @app.route('/api/disease-prediction', methods=['GET'])
 def disease_prediction():
+    # Query data from the database
     data = HealthData.query.all()
     df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-                        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-                       for d in data],
-                      columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-                               'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-                               'Malaria', 'Maternal Deaths'])
-
+        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
+        for d in data],
+        columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
+            'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
+            'Malaria', 'Maternal Deaths'])
     forecasted_data = {}
     model = LinearRegression()
-    future_years = np.array(range(2025, 2031)).reshape(-1, 1)
-
-    for disease in df.columns[1:]:
-        model.fit(df[['Year']], df[disease])
-        forecasted_values = model.predict(future_years)
-        forecasted_data[disease] = list(df[disease]) + list(predicted_values)
-
+    
+        # Future years to predict for (2025-2030)
+        # future_years = np.array(range(2025, 2031)).reshape(-1, 1)
+    for disease in df.columns[1:]:  # Loop through each disease column
+            # Use the 'Year' column as the feature (X) and the disease column as the target (y)
+            X = df[['Year']]  # Independent variable: Year
+            y = df[disease]   # Dependent variable: Disease data
+    
+            # Fit the model
+            model.fit(X, y)
+    
+            # Forecast future years
+            forecasted_values = model.predict(future_years)
+    
+            # Store the forecasted data (historical + forecasted)
+            forecasted_data[disease] = list(df[disease]) + list(forecasted_values)
+    
+        # Create Plotly figure for predictions
     fig = go.Figure()
     for disease in df.columns[1:]:
-        fig.add_trace(go.Scatter(x=list(df['Year']) + list(future_years.flatten()), y=forecasted_data[disease], mode='lines', name=disease))
-
+            fig.add_trace(go.Scatter(x=list(df['Year']) + list(future_years.flatten()),
+                y=forecasted_data[disease], mode='lines', name=disease))
     fig.update_layout(
-        title='Disease Predictions (Forecasted Cases)',
-        xaxis_title='Year',
-        yaxis_title='Cases',
-        hovermode='closest',
-        template='plotly_dark'
-    )
-
+                title='Disease Predictions (Forecasted Cases)',
+                xaxis_title='Year',
+                yaxis_title='Cases',
+                hovermode='closest',
+                template='plotly_dark'
+                )
+    
+        # Return the figure in JSON format
     return jsonify(fig.to_json())
+
 
 # Endpoint: Disease Heatmap
 @app.route('/api/disease-heatmap', methods=['GET'])
