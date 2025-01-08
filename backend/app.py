@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 
 # Initialize the Flask application
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
 
 # Database configuration
 db_user = 'root'
