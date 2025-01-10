@@ -5,12 +5,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 import numpy as np
+import plotly.io as pio
 import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
 
 # Initialize the Flask application
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+CORS(app)
 
 # Database configuration
 db_user = 'root'
@@ -68,12 +69,16 @@ def load_and_insert_data():
         db.session.rollback()
         print(f"Error inserting data: {e}")
 
-# Endpoint: Disease Trend (Interactive Line Chart)
+# Route for the root (home) page
+@app.route('/')
+def home():
+    return "Welcome to the HealthScope Ghana API!"
+
 @app.route('/api/disease-trend', methods=['GET'])
 def disease_trend():
     data = HealthData.query.all()
-    df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-                        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
+    df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension,
+                        d.meningitis, d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
                        for d in data],
                       columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
                                'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
@@ -83,15 +88,10 @@ def disease_trend():
     for disease in df.columns[1:]:
         fig.add_trace(go.Scatter(x=df['Year'], y=df[disease], mode='lines', name=disease))
 
-    fig.update_layout(
-        title='Disease Trends Over Time',
-        xaxis_title='Year',
-        yaxis_title='Cases',
-        hovermode='closest',
-        template='plotly_dark'
-    )
+    # Convert the figure to a dictionary that can be returned as JSON
+    fig_json = fig.to_json()
+    return jsonify(fig_json)
 
-    return jsonify(fig.to_json())
 
 # Endpoint: Disease Comparison (Interactive Bar Chart)
 @app.route('/api/disease-comparison', methods=['GET'])
@@ -116,7 +116,10 @@ def disease_comparison():
         template='plotly_dark'
     )
 
-    return jsonify(fig.to_json())
+     # Convert the figure to a dictionary that can be returned as JSON
+    fig_json = fig.to_json()
+    return jsonify(fig_json)
+
 
 # Endpoint: Disease Distribution (Interactive Pie Chart)
 @app.route('/api/disease-distribution', methods=['GET'])
@@ -137,12 +140,14 @@ def disease_distribution():
         template='plotly_dark'
     )
 
-    return jsonify(fig.to_json())
+     # Convert the figure to a dictionary that can be returned as JSON
+    fig_json = fig.to_json()
+    return jsonify(fig_json)
+
 
 # Endpoint: Disease Prediction (Forecasting)
 @app.route('/api/disease-prediction', methods=['GET'])
 def disease_prediction():
-    # Query data from the database
     data = HealthData.query.all()
     df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
         d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
@@ -150,30 +155,32 @@ def disease_prediction():
         columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
             'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
             'Malaria', 'Maternal Deaths'])
+
     forecasted_data = {}
     model = LinearRegression()
-    
-        # Future years to predict for (2025-2030)
-        # future_years = np.array(range(2025, 2031)).reshape(-1, 1)
+
+    # Future years to predict for (2025-2030)
+    future_years = np.array(range(2025, 2031)).reshape(-1, 1)
     for disease in df.columns[1:]:  # Loop through each disease column
-            # Use the 'Year' column as the feature (X) and the disease column as the target (y)
+        # Use the 'Year' column as the feature (X) and the disease column as the target (y)
             X = df[['Year']]  # Independent variable: Year
             y = df[disease]   # Dependent variable: Disease data
-    
+
             # Fit the model
             model.fit(X, y)
-    
+
             # Forecast future years
             forecasted_values = model.predict(future_years)
-    
+
             # Store the forecasted data (historical + forecasted)
             forecasted_data[disease] = list(df[disease]) + list(forecasted_values)
-    
+
         # Create Plotly figure for predictions
     fig = go.Figure()
     for disease in df.columns[1:]:
             fig.add_trace(go.Scatter(x=list(df['Year']) + list(future_years.flatten()),
                 y=forecasted_data[disease], mode='lines', name=disease))
+
     fig.update_layout(
                 title='Disease Predictions (Forecasted Cases)',
                 xaxis_title='Year',
@@ -182,8 +189,9 @@ def disease_prediction():
                 template='plotly_dark'
                 )
     
-        # Return the figure in JSON format
-    return jsonify(fig.to_json())
+     # Convert the figure to a dictionary that can be returned as JSON
+    fig_json = fig.to_json()
+    return jsonify(fig_json)
 
 
 # Endpoint: Disease Heatmap
@@ -205,7 +213,10 @@ def disease_heatmap():
         template='plotly_dark'
     )
 
-    return jsonify(fig.to_json())
+     # Convert the figure to a dictionary that can be returned as JSON
+    fig_json = fig.to_json()
+    return jsonify(fig_json)
+
 
 # Main entry point
 if __name__ == '__main__':
