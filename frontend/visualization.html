@@ -5,122 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Visualizations - Health Scope Ghana</title>
     <meta name="description" content="Health Scope Ghana - Explore health statistics, trends, and predictions in Ghana with interactive visualizations.">
-    <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-</head>
-<style>
-body {
-    background: linear-gradient(135deg, #e0f7fa, #e1bee7);
-    font-family: 'Arial', sans-serif;
-}
-.nav-link:hover {
-    background-color: #0056b3;
-    color: #ffffff !important;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-.chart-container {
-    width: 100%;
-    height: 400px;
-    margin: 20px auto;
-}
-#loadingSpinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none;
-}
-</style>
-<body>
-    <header class="bg-primary text-white py-3">
-        <div class="container d-flex justify-content-between align-items-center">
-            <h1 class="h3">Health Scope Ghana</h1>
-            <nav>
-                <ul class="nav">
-                    <li class="nav-item"><a href="index.html" class="nav-link text-white">Home</a></li>
-                    <li class="nav-item"><a href="visualization.html" class="nav-link text-white">Visualizations</a></li>
-                    <li class="nav-item"><a href="Educational.html" class="nav-link text-white">Education</a></li>
-                    <li class="nav-item"><a href="login.html" class="nav-link text-white">Login</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main class="container my-5">
-        <section id="charts" class="text-center mb-4">
-            <h2 class="mb-3">Disease Statistics and Predictions in Ghana</h2>
-            <p>Explore detailed charts representing health data trends, regional comparisons, disease distributions, and predictive analytics for disease cases.</p>
-        </section>
-
-        <section class="charts">
-            <div id="loadingSpinner" class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <h5>Disease Trends Over Time</h5>
-                    <div id="diseaseTrendChart" class="chart-container"></div>
-                </div>
-                <div class="col-md-6">
-                    <h5>Regional Disease Cases</h5>
-                    <div id="diseaseComparisonChart" class="chart-container"></div>
-                </div>
-            </div>
-            <div class="col-md-12">
-                <h5>Heatmap of Disease Cases</h5>
-                <div id="diseaseHeatmapChart" class="chart-container"></div>
-            </div>
-            <div class="row g-4 mt-4">
-                <div class="col-md-6">
-                    <h5>Disease Distribution</h5>
-                    <div id="diseaseDistributionChart" class="chart-container"></div>
-                </div>
-                <div class="col-md-6">
-                    <h5>Predicted Disease Cases</h5>
-                    <div id="diseasePredictionChart" class="chart-container"></div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="bg-dark text-white py-3">
-        <div class="container text-center">
-            <p>&copy; 2025 Health Scope Ghana. All rights reserved.</p>
-        </div>
-    </footer>
-
-<script>
-    async function fetchChartData(apiUrl, chartId) {
-            try {
-                const response = await fetch(apiUrl);
-                const chartData = await response.json();
-                Plotly.newPlot(chartId, chartData.data, chartData.layout);
-            } catch (error) {
-                console.error('Error fetching chart data:', error);
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            font-family: 'Arial', sans-serif;
+        }
+        .nav-link:hover {
+            background-color: #0056b3;
+            color: #ffffff !important;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .chart-container {
+            width: 100%;
+            height: 600px;
+            margin: 40px auto;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 500px;
             }
         }
+        #loadingSpinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        .interpretation {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
 
+<header class="bg-primary text-white py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h1 class="h3">Health Scope Ghana</h1>
+        <nav>
+            <ul class="nav">
+                <li class="nav-item"><a href="index.html" class="nav-link text-white">Home</a></li>
+                <li class="nav-item"><a href="visualization.html" class="nav-link text-white">Visualizations</a></li>
+                <li class="nav-item"><a href="Educational.html" class="nav-link text-white">Education</a></li>
+                <li class="nav-item"><a href="login.html" class="nav-link text-white">Login</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main class="container my-5">
+    <section id="charts">
+        <h2 class="text-center mb-4">Explore detailed charts representing health data trends, regional comparisons, disease distributions, and predictive analytics for disease cases.</h2>
+
+        <!-- Spinner -->
+        <div id="loadingSpinner" class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+
+        <!-- Line Chart -->
+        <h3>Disease Trends Over Time</h3>
+        <div id="line-chart" class="chart-container"></div>
+        <div class="interpretation" id="line-chart-interpretation"></div>
+
+        <!-- Pie Chart -->
+        <h3>Disease Distribution</h3>
+        <div id="pie-chart" class="chart-container"></div>
+        <div class="interpretation" id="pie-chart-interpretation"></div>
+
+        <!-- Bar Chart -->
+        <h3>Regional Disease Cases Comparison</h3>
+        <div id="bar-chart" class="chart-container"></div>
+        <div class="interpretation" id="bar-chart-interpretation"></div>
+
+        <!-- Heatmap -->
+        <h3>Heatmap of Disease Cases</h3>
+        <div id="heatmap-chart" class="chart-container"></div>
+        <div class="interpretation" id="heatmap-chart-interpretation"></div>
+
+        <!-- Prediction Chart -->
+        <h3>Predicted Disease Cases</h3>
+        <div id="prediction-chart" class="chart-container"></div>
+        <div class="interpretation" id="prediction-chart-interpretation"></div>
+    </section>
+</main>
+
+<footer>
+    <p class="text-center">&copy; 2025 HealthScope Ghana. All rights reserved.</p>
+</footer>
+
+<!-- JavaScript for fetching and rendering charts -->
+<script>
+    async function fetchChartData(apiUrl, chartId, interpretationId) {
+        try {
+            // Show spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            // Fetch chart data from API
+            const response = await fetch(apiUrl);
+            const chartData = await response.json();
+
+            // Hide spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+
+            // Render chart
+            Plotly.react(chartId, JSON.parse(chartData));
+
+            // Provide interpretation for the chart
+            provideInterpretation(chartId, interpretationId);
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+        }
+    }
+
+    function provideInterpretation(chartId, interpretationId) {
+        let interpretationText;
+
+        switch (chartId) {
+            case 'line-chart':
+                interpretationText = 'The Disease Trends Over Time chart shows a steady increase or decrease in various diseases. Identify seasonal patterns and overall trends that help plan interventions.';
+                break;
+            case 'pie-chart':
+                interpretationText = 'The Disease Distribution chart shows the proportion of different diseases in the population. It highlights which diseases are more prevalent and need more attention.';
+                break;
+            case 'bar-chart':
+                interpretationText = 'The Regional Disease Cases Comparison chart shows how different regions are affected by various diseases. It helps target specific regions for health interventions.';
+                break;
+            case 'heatmap-chart':
+                interpretationText = 'The Heatmap of Disease Cases shows high-density areas for specific diseases. This can be used to allocate resources effectively.';
+                break;
+            case 'prediction-chart':
+                interpretationText = 'The Predicted Disease Cases chart provides a projection for the next 30 years. It shows expected future trends, allowing policymakers to plan ahead.';
+                break;
+        }
+
+        document.getElementById(interpretationId).innerHTML = `<strong>Interpretation:</strong> ${interpretationText}`;
+    }
+
+    // Load charts on page load
     document.addEventListener('DOMContentLoaded', function () {
-        fetchChartData('http://localhost:5000/api/disease-trend', 'diseaseTrendChart');
-        fetchChartData('http://localhost:5000/api/disease-comparison', 'diseaseComparisonChart');
-        fetchChartData('http://localhost:5000/api/disease-distribution', 'diseaseDistributionChart');
-        fetchChartData('http://localhost:5000/api/disease-prediction', 'diseasePredictionChart');
-        fetchChartData('http://localhost:5000/api/disease-heatmap', 'diseaseHeatmapChart');
+        fetchChartData('http://localhost:5000/api/disease-trend', 'line-chart', 'line-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-distribution', 'pie-chart', 'pie-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-comparison', 'bar-chart', 'bar-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-heatmap', 'heatmap-chart', 'heatmap-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-prediction', 'prediction-chart', 'prediction-chart-interpretation');
     });
 
     // Refresh charts every 10 minutes
     setInterval(function () {
-        fetchChartData('http://localhost:5000/api/disease-trend', 'diseaseTrendChart');
-        fetchChartData('http://localhost:5000/api/disease-comparison', 'diseaseComparisonChart');
-        fetchChartData('http://localhost:5000/api/disease-distribution', 'diseaseDistributionChart');
-        fetchChartData('http://localhost:5000/api/disease-prediction', 'diseasePredictionChart');
-        fetchChartData('http://localhost:5000/api/disease-heatmap', 'diseaseHeatmapChart');
-    }, 600000); // Refresh every 10 minutes (600000 ms)
+        fetchChartData('http://localhost:5000/api/disease-trend', 'line-chart', 'line-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-distribution', 'pie-chart', 'pie-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-comparison', 'bar-chart', 'bar-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-heatmap', 'heatmap-chart', 'heatmap-chart-interpretation');
+        fetchChartData('http://localhost:5000/api/disease-prediction', 'prediction-chart', 'prediction-chart-interpretation');
+    }, 600000);
 </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
