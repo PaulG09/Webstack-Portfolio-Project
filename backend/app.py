@@ -1,226 +1,145 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
-from sqlalchemy.exc import IntegrityError
 import pandas as pd
-import numpy as np
-import plotly.io as pio
-import plotly.graph_objects as go
-from sklearn.linear_model import LinearRegression
+import plotly.express as px
+import plotly  # Import plotly to use plotly.utils
+import json
 
-# Initialize the Flask application
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Database configuration
-db_user = 'root'
-db_password = '%40Santaclausian07'
-db_host = 'localhost'
-db_name = 'healthscope_ghana'
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# 📄 Load the Excel dataset
+df = pd.read_excel('cleaned_health_data.xlsx')
 
-# Initialize the database
-db = SQLAlchemy(app)
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+# 🧹 Data cleaning
+df.dropna(inplace=True)
 
-# Data Model for Health Data
-class HealthData(db.Model):
-    __tablename__ = 'health_data'
-    id = db.Column(db.Integer, primary_key=True)
-    year = db.Column(db.Integer)
-    region = db.Column(db.String(50))
-    cervical_cancer = db.Column(db.Float)
-    diabetes_mellitus = db.Column(db.Float)
-    hiv_aids_related_conditions = db.Column(db.Float)
-    hypertension = db.Column(db.Float)
-    meningitis = db.Column(db.Float)
-    tuberculosis = db.Column(db.Float)
-    liver_diseases = db.Column(db.Float)
-    upper_respiratory_tract_infections = db.Column(db.Float)
-    malaria_total = db.Column(db.Float)
-    maternal_deaths_total = db.Column(db.Float)
-
-# Load and insert data from Excel
-def load_and_insert_data():
-    excel_file = 'cleaned_health_data.xlsx'
-    df = pd.read_excel(excel_file)
-    try:
-        for _, row in df.iterrows():
-            health_data = HealthData(
-                year=row['YEAR'],
-                region=row['REGION'],
-                cervical_cancer=row['Cervical Cancer'],
-                diabetes_mellitus=row['Diabetes Mellitus'],
-                hiv_aids_related_conditions=row['HIV/AIDS Related conditions'],
-                hypertension=row['Hypertension'],
-                meningitis=row['Meningitis'],
-                tuberculosis=row['Tuberculosis'],
-                liver_diseases=row['liver diseases'],
-                upper_respiratory_tract_infections=row['Upper Respiratory Tract Infections'],
-                malaria_total=row['MALARIA TOTAL'],
-                maternal_deaths_total=row['MATERNAL DEATHS TOTAL']
-            )
-            db.session.add(health_data)
-        db.session.commit()
-        print("Data inserted successfully!")
-    except IntegrityError as e:
-        db.session.rollback()
-        print(f"Error inserting data: {e}")
-
-# Route for the root (home) page
-@app.route('/')
-def home():
-    return "Welcome to the HealthScope Ghana API!"
-
+# 📊 Endpoint 1: Disease Trends (Line Chart)
 @app.route('/api/disease-trend', methods=['GET'])
 def disease_trend():
-    data = HealthData.query.all()
-    df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension,
-                        d.meningitis, d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-                       for d in data],
-                      columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-                               'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-                               'Malaria', 'Maternal Deaths'])
+    # Filter all diseases
+    diseases = df.columns[2:]  # Exclude 'YEAR' and 'REGION' columns
+    df_filtered = df[['YEAR', 'REGION'] + list(diseases)].melt(id_vars=['YEAR', 'REGION'], var_name='Disease', value_name='Cases')
 
-    fig = go.Figure()
-    for disease in df.columns[1:]:
-        fig.add_trace(go.Scatter(x=df['Year'], y=df[disease], mode='lines', name=disease))
+    # Create a Plotly line chart
+    fig = px.line(
+        df_filtered,
+        x="YEAR",
+        y="Cases",
+        color="Disease",
+        title="Disease Trends Over Time",
+        labels={"YEAR": "Year", "Cases": "Number of Cases"},
+        template="plotly_dark"
+    )
 
-    # Convert the figure to a dictionary that can be returned as JSON
-    fig_json = fig.to_json()
-    return jsonify(fig_json)
+    # Convert the figure to JSON
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return jsonify(graphJSON)
 
-
-# Endpoint: Disease Comparison (Interactive Bar Chart)
+# 📊 Endpoint 2: Disease Comparison by Region (Bar Chart)
 @app.route('/api/disease-comparison', methods=['GET'])
 def disease_comparison():
-    data = HealthData.query.all()
-    df = pd.DataFrame([(d.region, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-                        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-                       for d in data],
-                      columns=['Region', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-                               'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-                               'Malaria', 'Maternal Deaths'])
+    # Sum cases by region
+    df_region_sum = df.groupby('REGION').sum().reset_index()
+    df_melted = df_region_sum.melt(id_vars=['REGION'], var_name='Disease', value_name='Cases')
 
-    fig = go.Figure()
-    for disease in df.columns[1:]:
-        fig.add_trace(go.Bar(x=df['Region'], y=df[disease], name=disease))
-
-    fig.update_layout(
-        title='Disease Comparison by Region',
-        xaxis_title='Region',
-        yaxis_title='Cases',
-        barmode='group',
-        template='plotly_dark'
+    # Create a Plotly bar chart
+    fig = px.bar(
+        df_melted,
+        x="REGION",
+        y="Cases",
+        color="Disease",
+        title="Regional Disease Cases",
+        labels={"REGION": "Region", "Cases": "Number of Cases"},
+        template="plotly_dark"
     )
 
-     # Convert the figure to a dictionary that can be returned as JSON
-    fig_json = fig.to_json()
-    return jsonify(fig_json)
+    # Convert the figure to JSON
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return jsonify(graphJSON)
 
-
-# Endpoint: Disease Distribution (Interactive Pie Chart)
+# 📊 Endpoint 3: Disease Distribution (Pie Chart)
 @app.route('/api/disease-distribution', methods=['GET'])
 def disease_distribution():
-    data = HealthData.query.all()
-    df = pd.DataFrame([(d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-                        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-                       for d in data],
-                      columns=['Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-                               'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-                               'Malaria', 'Maternal Deaths'])
+    # Total cases for each disease
+    disease_totals = df.drop(columns=['YEAR', 'REGION']).sum().reset_index()
+    disease_totals.columns = ['Disease', 'Cases']
 
-    disease_totals = df.sum()
-    fig = go.Figure(data=[go.Pie(labels=disease_totals.index, values=disease_totals, hole=0.3)])
-
-    fig.update_layout(
-        title='Disease Distribution Across Categories',
-        template='plotly_dark'
+    # Create a Plotly pie chart
+    fig = px.pie(
+        disease_totals,
+        names='Disease',
+        values='Cases',
+        title="Disease Distribution in Ghana",
+        template="plotly_dark"
     )
 
-     # Convert the figure to a dictionary that can be returned as JSON
-    fig_json = fig.to_json()
-    return jsonify(fig_json)
+    # Convert the figure to JSON
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return jsonify(graphJSON)
 
-
-# Endpoint: Disease Prediction (Forecasting)
-@app.route('/api/disease-prediction', methods=['GET'])
-def disease_prediction():
-    data = HealthData.query.all()
-    df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-        for d in data],
-        columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-            'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-            'Malaria', 'Maternal Deaths'])
-
-    forecasted_data = {}
-    model = LinearRegression()
-
-    # Future years to predict for (2025-2030)
-    future_years = np.array(range(2025, 2031)).reshape(-1, 1)
-    for disease in df.columns[1:]:  # Loop through each disease column
-        # Use the 'Year' column as the feature (X) and the disease column as the target (y)
-            X = df[['Year']]  # Independent variable: Year
-            y = df[disease]   # Dependent variable: Disease data
-
-            # Fit the model
-            model.fit(X, y)
-
-            # Forecast future years
-            forecasted_values = model.predict(future_years)
-
-            # Store the forecasted data (historical + forecasted)
-            forecasted_data[disease] = list(df[disease]) + list(forecasted_values)
-
-        # Create Plotly figure for predictions
-    fig = go.Figure()
-    for disease in df.columns[1:]:
-            fig.add_trace(go.Scatter(x=list(df['Year']) + list(future_years.flatten()),
-                y=forecasted_data[disease], mode='lines', name=disease))
-
-    fig.update_layout(
-                title='Disease Predictions (Forecasted Cases)',
-                xaxis_title='Year',
-                yaxis_title='Cases',
-                hovermode='closest',
-                template='plotly_dark'
-                )
-    
-     # Convert the figure to a dictionary that can be returned as JSON
-    fig_json = fig.to_json()
-    return jsonify(fig_json)
-
-
-# Endpoint: Disease Heatmap
+# 📊 Endpoint 4: Disease Heatmap
 @app.route('/api/disease-heatmap', methods=['GET'])
 def disease_heatmap():
-    data = HealthData.query.all()
-    df = pd.DataFrame([(d.year, d.cervical_cancer, d.diabetes_mellitus, d.hiv_aids_related_conditions, d.hypertension, d.meningitis,
-                        d.tuberculosis, d.liver_diseases, d.upper_respiratory_tract_infections, d.malaria_total, d.maternal_deaths_total)
-                       for d in data],
-                      columns=['Year', 'Cervical Cancer', 'Diabetes Mellitus', 'HIV/AIDS Related conditions', 'Hypertension',
-                               'Meningitis', 'Tuberculosis', 'Liver diseases', 'Upper Respiratory Tract Infections',
-                               'Malaria', 'Maternal Deaths'])
+    # Group by year and disease
+    df_grouped = df.groupby(['YEAR']).sum().reset_index()
 
-    correlation_matrix = df.corr()
-    fig = go.Figure(data=go.Heatmap(z=correlation_matrix.values, x=correlation_matrix.columns, y=correlation_matrix.columns, colorscale='Viridis'))
-
-    fig.update_layout(
-        title='Disease Heatmap (Correlation Matrix)',
-        template='plotly_dark'
+    # Create a heatmap
+    fig = px.imshow(
+        df_grouped.set_index('YEAR').transpose(),
+        title="Heatmap of Disease Cases Over Time",
+        labels={'x': 'Year', 'y': 'Disease', 'color': 'Cases'},
+        template="plotly_dark"
     )
 
-     # Convert the figure to a dictionary that can be returned as JSON
-    fig_json = fig.to_json()
-    return jsonify(fig_json)
+    # Convert the figure to JSON
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return jsonify(graphJSON)
 
+# 📊 Endpoint 5: Predicted Disease Cases (Line Chart with Future Predictions)
+@app.route('/api/disease-prediction', methods=['GET'])
+def disease_prediction():
+    try:
+        # Calculate the yearly difference for each disease to estimate the trend
+        diseases = df.columns[2:]  # Assuming the disease data starts from the 3rd column
+        avg_increase = {}
 
-# Main entry point
+        # Calculate average yearly increase for each disease
+        for disease in diseases:
+            yearly_diff = df.groupby('YEAR')[disease].sum().diff().dropna()
+            avg_increase[disease] = yearly_diff.mean()
+
+        # Project future cases for the next 30 years based on the average increase
+        last_year = df['YEAR'].max()
+        future_years = pd.DataFrame({'YEAR': range(last_year + 1, last_year + 31)})  # Next 30 years
+        future_cases = future_years.copy()
+
+        for disease, avg_inc in avg_increase.items():
+            last_value = df[df['YEAR'] == last_year][disease].values[0]
+            future_cases[disease] = last_value + (avg_inc * range(1, 31))  # Predict for 30 years
+
+        # Melt the future cases DataFrame to long format for Plotly visualization
+        future_cases_melted = future_cases.melt(id_vars=['YEAR'], var_name='Disease', value_name='Predicted Cases')
+
+        # Create a Plotly line chart for future predictions
+        fig = px.line(
+            future_cases_melted,
+            x="YEAR",
+            y="Predicted Cases",
+            color="Disease",
+            title="Predicted Disease Cases for the Next 30 Years",
+            labels={"YEAR": "Year", "Predicted Cases": "Number of Cases"},
+            template="plotly_dark"
+        )
+
+        # Convert the figure to JSON for rendering on the frontend
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return jsonify(graphJSON)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 🚀 Run the app
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        load_and_insert_data()
     app.run(debug=True)
